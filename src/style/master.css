@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgb(34, 47, 53);
+}
+
+#hud {
+    color: orange;
+    width: 1024px;
+    margin: 0 auto 2em auto;
+    border: 1px solid rgba(255, 166, 0, 0.4);
+    display: flex;
+    justify-content: space-between;
+}
+
+#hud > div {
+    display: inline-flex;
+    margin: 0 1em;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    border: 1px solid #555;
+    cursor: crosshair;
+}
+
+.invader {
+    border: 1px solid red;
+    display: inline-block;
+}
