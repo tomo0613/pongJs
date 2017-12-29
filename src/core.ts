@@ -11,7 +11,10 @@ export class Core {
     context: CanvasRenderingContext2D;
     stopped: boolean = true;
     simulationDepth: number = 0; // accumulator
-    simulationStep: number = 1/240;
+    simulationCount: number = 0;
+    simulationStep: number = 1/120;
+    simulationLimit: number = 240;
+    elapsedTime: number;
     prevTimeStamp: number;
     entities: Entities = {ball: null, player: null, computer: null};
     mouseY: number;
@@ -23,6 +26,7 @@ export class Core {
     constructor(canvas) {
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
+        this.context.fillStyle = '#FFF';
 
         this.entities.ball = new Rect(10, 10);
         this.entities.player = new Rect(10, 100);
@@ -35,19 +39,19 @@ export class Core {
     }
 
     drawRect = (rect) => {
-        this.context.fillStyle = '#FFF';        
-        this.context.fillRect(rect.boundingRect.left, rect.boundingRect.top, rect.width, rect.height)
+        this.context.fillRect(
+            Math.round(rect.boundingRect.left),
+            Math.round(rect.boundingRect.top),
+            rect.width,
+            rect.height
+        );
     }
 
     drawScene = () => {
-        this.context.fillStyle = '#000';
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
-        this.context.moveTo(this.canvas.width / 2, 0);
-        this.context.lineTo(this.canvas.width / 2, this.canvas.height);
-        this.context.strokeStyle = '#555';
-        this.context.stroke();
-
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        // print FPS
+        // this.context.font = '16px arial';
+        // this.context.fillText('FPS: ' + Math.floor(1 / this.elapsedTime), this.canvas.width - 75, 15);
         Object.keys(this.entities).forEach((entity) => this.drawRect(this.entities[entity]));
     }
 
@@ -70,9 +74,7 @@ export class Core {
     }
 
     applyAiControls = (paddle, dt) => {
-        paddle.vel.y = Math.valBetween(
-            -500, this.entities.ball.vel.y + 0.2, 500
-        );
+        paddle.vel.y = Math.valBetween(-500, this.entities.ball.vel.y + 0.2, 500);
     }
 
     rectIsOverlap = (rectA, rectB) => {
@@ -87,15 +89,17 @@ export class Core {
     handleCollision = () => {
         [this.entities.player, this.entities.computer].forEach((paddle) => {
             if (this.rectIsOverlap(this.entities.ball, paddle)) {
-                if (this.entities.ball.pos.x < paddle.boundingRect.left ||
-                    this.entities.ball.pos.x > paddle.boundingRect.right) {
-                    this.entities.ball.vel.x *= -1;
-                }
+                // find a proper way to detect collision for edges / corners
+                // if (this.entities.ball.pos.x < paddle.boundingRect.left ||
+                //     this.entities.ball.pos.x > paddle.boundingRect.right) {
+                //     this.entities.ball.vel.x *= -1;
+                // }
 
-                if (this.entities.ball.pos.y < paddle.boundingRect.top ||
-                    this.entities.ball.pos.y > paddle.boundingRect.bottom) {
-                    this.entities.ball.vel.y *= -1;
-                }
+                // if (this.entities.ball.pos.y < paddle.boundingRect.top ||
+                //     this.entities.ball.pos.y > paddle.boundingRect.bottom) {
+                //     this.entities.ball.vel.y *= -1;
+                // }
+                this.entities.ball.vel.x *= -1;
 
                 this.entities.ball.vel.y += paddle.vel.y / 2; // spin
             }
@@ -114,23 +118,30 @@ export class Core {
     updatePhysics = (dt) => {
         this.applyPlayerControls(this.entities.player, dt);
         this.applyAiControls(this.entities.computer, dt);
-        this.moveBall(dt);
         this.movePaddle(this.entities.player, dt);
         this.movePaddle(this.entities.computer, dt);
+        this.moveBall(dt);
         this.handleCollision()
     }
 
     simulate = (elapsedTime) => {
+        this.simulationCount = 0;
         this.simulationDepth += elapsedTime;
 
         while (this.simulationDepth > this.simulationStep) {
             this.updatePhysics(this.simulationStep);
             this.simulationDepth -= this.simulationStep;
+
+            if (++this.simulationCount >= this.simulationLimit) {
+                this.simulationDepth = 0;
+                break;
+            }
         }
     }
 
     animate = (timeStamp = performance.now()) => {
-        this.simulate((timeStamp - (this.prevTimeStamp || performance.now())) / 1000);
+        this.elapsedTime = (timeStamp - (this.prevTimeStamp || performance.now())) / 1000;
+        this.simulate(this.elapsedTime);
         this.drawScene();
 
         this.prevTimeStamp = timeStamp;

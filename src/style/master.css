@@ -23,6 +23,7 @@ canvas {
     display: block;
     margin: 0 auto;
     border: 1px solid #555;
+    background: linear-gradient(to right, #000 320px, #555 320px, #555 321px, #000 321px);
     cursor: crosshair;
 }
 
