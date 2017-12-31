@@ -22,6 +22,8 @@ export class Core {
     paddleEasing: number = 10;
     paddleOffset: number = 50;
     listeners: any;
+    audioContext: AudioContext;
+    oscillator: any;
 
     constructor(canvas) {
         this.canvas = canvas;
@@ -36,6 +38,8 @@ export class Core {
         this.entities.computer.pos.set(this.canvas.width - this.paddleOffset, this.canvas.height / 2);
 
         canvas.addEventListener('mousemove', (e) => this.mouseY = e.offsetY);
+
+        this.audioContext = new AudioContext();
     }
 
     drawRect = (rect) => {
@@ -89,19 +93,11 @@ export class Core {
     handleCollision = () => {
         [this.entities.player, this.entities.computer].forEach((paddle) => {
             if (this.rectIsOverlap(this.entities.ball, paddle)) {
-                // find a proper way to detect collision for edges / corners
-                // if (this.entities.ball.pos.x < paddle.boundingRect.left ||
-                //     this.entities.ball.pos.x > paddle.boundingRect.right) {
-                //     this.entities.ball.vel.x *= -1;
-                // }
-
-                // if (this.entities.ball.pos.y < paddle.boundingRect.top ||
-                //     this.entities.ball.pos.y > paddle.boundingRect.bottom) {
-                //     this.entities.ball.vel.y *= -1;
-                // }
+                // TODO find a proper way to detect collision for edges / corners
                 this.entities.ball.vel.x *= -1;
 
                 this.entities.ball.vel.y += paddle.vel.y / 2; // spin
+                this.playSound(this.entities.ball.pos.x < 100 ? 500 : 1500);
             }
         });
         
@@ -172,4 +168,14 @@ export class Core {
     }
 
     setListeners = (listeners) => this.listeners = listeners;
+
+    playSound = (frequency) => {
+        this.oscillator = this.audioContext.createOscillator();
+        this.oscillator.connect(this.audioContext.destination);
+        this.oscillator.type = 'square';
+        this.oscillator.frequency.value = frequency;
+
+        this.oscillator.start();
+        this.oscillator.stop(this.audioContext.currentTime + 0.02);
+    }
 }

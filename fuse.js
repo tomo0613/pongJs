@@ -1,4 +1,4 @@
-const {FuseBox, CSSPlugin, JSONPlugin, WebIndexPlugin, QuantumPlugin} = require('fuse-box');
+const {FuseBox, CSSPlugin, WebIndexPlugin, QuantumPlugin} = require('fuse-box');
 const devMode = process.env.NODE_ENV === 'dev';
 
 const fuse = FuseBox.init({
@@ -8,7 +8,6 @@ const fuse = FuseBox.init({
     experimentalFeatures: true,
     plugins: [
         CSSPlugin(),
-        JSONPlugin(),
         WebIndexPlugin({
             template: 'src/index.html',
             path: '.'
@@ -20,12 +19,13 @@ const fuse = FuseBox.init({
     ],
     target: 'browser',
     sourceMaps: devMode,
-    cache: devMode,
+    // cache: devMode,
+    cache: false,
     hash: !devMode
 });
 
 
-const app = fuse.bundle('bundle').instructions('>index.tsx');
+const app = fuse.bundle('bundle').instructions('>index.ts');
 
 if (devMode) {
     fuse.dev();
