@@ -1,4 +1,4 @@
-import {Rect} from './assets';
+import {Rect, CollisionHandler} from './assets';
 
 type Entities = {
     ball: any,
@@ -21,6 +21,8 @@ export class Core {
     paddleMaxSpeed: number = 700;
     paddleEasing: number = 10;
     paddleOffset: number = 50;
+    obstacle: any;
+    collisionHandler: any;
     listeners: any;
     audioContext: AudioContext;
     oscillator: any;
@@ -39,6 +41,7 @@ export class Core {
 
         canvas.addEventListener('mousemove', (e) => this.mouseY = e.offsetY);
 
+        this.collisionHandler = new CollisionHandler();
         this.audioContext = new AudioContext();
     }
 
@@ -60,8 +63,18 @@ export class Core {
     }
 
     moveBall = (dt) => {
-        this.entities.ball.pos.x += this.entities.ball.vel.x * dt;
-        this.entities.ball.pos.y += this.entities.ball.vel.y * dt;
+        ['x', 'y'].forEach((axis) => {
+            this.entities.ball.pos[axis] += this.entities.ball.vel[axis] * dt; // move entity
+
+            if (this.entities.ball.vel[axis]) { // if entity moved then check if collision occurred
+                this.obstacle = [this.entities.player, this.entities.computer].find((entity) => {
+                    return this.collisionHandler.rectIsOverlap(this.entities.ball, entity); // get colliding entity
+                });
+                if (this.obstacle) { // if entity is overlap then correct its position
+                    this.collisionHandler.correctPosition(axis, this.entities.ball, this.obstacle);
+                }
+            }
+        });
     }
 
     movePaddle = (paddle, dt) => {
@@ -72,6 +85,8 @@ export class Core {
     }
 
     applyPlayerControls = (paddle, dt) => { // TODO refactor
+        if (!this.mouseY) return;
+
         paddle.vel.y = Math.valBetween(
             -this.paddleMaxSpeed, (this.mouseY - paddle.pos.y) * this.paddleEasing, this.paddleMaxSpeed
         );
@@ -81,25 +96,21 @@ export class Core {
         paddle.vel.y = Math.valBetween(-500, this.entities.ball.vel.y + 0.2, 500);
     }
 
-    rectIsOverlap = (rectA, rectB) => {
-        return (
-            rectA.boundingRect.left < rectB.boundingRect.right &&
-            rectA.boundingRect.top < rectB.boundingRect.bottom &&
-            rectA.boundingRect.bottom > rectB.boundingRect.top &&
-            rectA.boundingRect.right > rectB.boundingRect.left
-        );
-    }
-
     handleCollision = () => {
-        [this.entities.player, this.entities.computer].forEach((paddle) => {
-            if (this.rectIsOverlap(this.entities.ball, paddle)) {
-                // TODO find a proper way to detect collision for edges / corners
+        if (this.collisionHandler.currentObstacle) {
+            if (['left', 'right'].includes(this.collisionHandler.collidingSide)) {
                 this.entities.ball.vel.x *= -1;
-
-                this.entities.ball.vel.y += paddle.vel.y / 2; // spin
-                this.playSound(this.entities.ball.pos.x < 100 ? 500 : 1500);
             }
-        });
+
+            if (['top', 'bottom'].includes(this.collisionHandler.collidingSide)) {
+                this.entities.ball.vel.y *= -1;
+            }
+
+            this.entities.ball.vel.y += this.collisionHandler.currentObstacle.vel.y / 2; // + velocity of the paddle
+            this.collisionHandler.currentObstacle = null;
+
+            this.playSound(this.entities.ball.pos.x < 100 ? 500 : 1500);
+        }
         
         if (this.entities.ball.boundingRect.top < 0 || this.entities.ball.boundingRect.bottom > this.canvas.height) {
             this.entities.ball.vel.y *= -1;
@@ -117,7 +128,7 @@ export class Core {
         this.movePaddle(this.entities.player, dt);
         this.movePaddle(this.entities.computer, dt);
         this.moveBall(dt);
-        this.handleCollision()
+        this.handleCollision();
     }
 
     simulate = (elapsedTime) => {
