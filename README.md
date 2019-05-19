@@ -1,9 +1,9 @@
 # Pong JS
-### A Js implementation of the classic Pong game
+### A Js implementation of the "Pong" game
 
-[DEMO]
+[LIVE DEMO]
 
 - Graphics -> HTML5 Canvas
 - Audio -> OscillatorNode
   
-[DEMO]: <https://tomo0613.github.io/pongJs/>
+[LIVE DEMO]: <https://tomo0613.github.io/pongJs/>

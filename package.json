@@ -4,16 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node fuse.js",
-    "dev": "NODE_ENV=dev node fuse.js",
+    "compile": "tsc -w",
+    "dev": "./dev.sh",
+    "dev:server": "WATCH='./build' node devServer/server.js",
+    "lint": "eslint src/** --ext .ts",
+    "lint:fix": "npm run lint --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
-    "fuse-box": "^2.5.0-beta.1",
-    "typescript": "^2.6.2",
-    "uglify-js": "^3.3.3"
+    "@typescript-eslint/eslint-plugin": "^1.8.0",
+    "@typescript-eslint/parser": "^1.8.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.2",
+    "typescript": "^3.4.5"
   }
 }

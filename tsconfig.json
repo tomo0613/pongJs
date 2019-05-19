@@ -1,12 +1,10 @@
 {
     "compilerOptions": {
-        "strict": false,
-        "target": "es2017",
-        "module": "commonjs",
-        "jsx": "react",
-        "baseUrl": "src/",
-        "outDir": "build/",
-        "sourceMap": true
+        "module": "esnext",
+        "target": "esnext",
+        "outDir": "build",
+        "rootDir": "src",
+        "sourceMap": true,
     },
     "exclude": [
         "build",
