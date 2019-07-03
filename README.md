@@ -1,7 +1,7 @@
 # Pong JS
 ### A Js implementation of the "Pong" game
 
-[LIVE DEMO]
+[LIVE DEMO] (use [W] / [S] keys to move)
 
 - Graphics -> HTML5 Canvas
 - Audio -> OscillatorNode
